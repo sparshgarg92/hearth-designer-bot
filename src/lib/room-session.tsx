@@ -73,6 +73,8 @@ export type AiDirection = {
   floorMaterial: string;
 };
 
+export type AnalysisMode = "thermal" | "wifi" | "acoustic" | null;
+
 type RoomSessionState = {
   items: DetectedItem[];
   setItems: (i: DetectedItem[]) => void;
