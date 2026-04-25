@@ -154,8 +154,56 @@
     border-color: var(--color-border);
   }
 
-  body {
-    background-color: var(--color-background);
+  html, body {
+    background: var(--gradient-warm);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .font-serif {
+    font-family: var(--font-serif);
+    font-feature-settings: "kern", "liga";
   }
 }
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-terracotta: var(--terracotta);
+  --color-sage: var(--sage);
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes tag-pop {
+  0% { opacity: 0; transform: scale(0.7); }
+  60% { transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in-up { animation: fade-in-up 600ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+.animate-fade-in { animation: fade-in 500ms ease-out both; }
+.animate-scale-in { animation: scale-in 400ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.animate-tag-pop { animation: tag-pop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
