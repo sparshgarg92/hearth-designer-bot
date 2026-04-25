@@ -68,7 +68,7 @@ export function ChatPanel() {
   };
 
   return (
-    <aside className="hidden w-[360px] shrink-0 flex-col border-l border-border bg-card/40 lg:flex">
+    <aside className="hidden h-full w-full flex-col bg-card/40 lg:flex">
       <div className="flex items-center gap-2 border-b border-border px-5 py-3">
         <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
