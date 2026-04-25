@@ -1,4 +1,5 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { RoomSessionProvider } from "@/lib/room-session";
 
 import appCss from "../styles.css?url";
 
@@ -65,5 +66,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <RoomSessionProvider>
+      <Outlet />
+    </RoomSessionProvider>
+  );
 }
