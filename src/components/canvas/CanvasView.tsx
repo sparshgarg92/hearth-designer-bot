@@ -60,7 +60,7 @@ export function CanvasView() {
 
       {/* 3-col layout */}
       <div className="flex min-h-0 flex-1">
-        <ItemSidebar />
+        {analysisOpen ? <AnalysisSidebar /> : <ItemSidebar />}
 
         <section className="flex min-w-0 flex-1 flex-col">
           <div className="relative flex-1 overflow-hidden p-4 sm:p-6">
