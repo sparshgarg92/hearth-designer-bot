@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { Share2, ArrowLeft, Sparkles } from "lucide-react";
+import { Share2, ArrowLeft, Microscope } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useRoomSession, VIEWPOINTS, INITIAL_ITEMS } from "@/lib/room-session";
+import { useRoomSession, VIEWPOINTS } from "@/lib/room-session";
 import { RoomStage } from "./RoomStage";
 import { ItemSidebar } from "./ItemSidebar";
+import { AnalysisSidebar } from "./AnalysisSidebar";
 import { ChatPanel } from "./ChatPanel";
 import { HistoryStrip } from "./HistoryStrip";
 import { ViewpointSwitcher } from "./ViewpointSwitcher";
