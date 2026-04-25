@@ -73,6 +73,8 @@ export type AiDirection = {
   floorMaterial: string;
 };
 
+export type AnalysisMode = "thermal" | "wifi" | "acoustic" | null;
+
 type RoomSessionState = {
   items: DetectedItem[];
   setItems: (i: DetectedItem[]) => void;
@@ -92,6 +94,10 @@ type RoomSessionState = {
   setImageAdjust: (a: ImageAdjust) => void;
   aiDirection: AiDirection;
   setAiDirection: (a: AiDirection) => void;
+  analysisOpen: boolean;
+  setAnalysisOpen: (b: boolean) => void;
+  analysisMode: AnalysisMode;
+  setAnalysisMode: (m: AnalysisMode) => void;
 };
 
 const RoomSessionContext = createContext<RoomSessionState | null>(null);
@@ -124,6 +130,8 @@ export function RoomSessionProvider({ children }: { children: ReactNode }) {
     floorColour: "",
     floorMaterial: "",
   });
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>(null);
 
   return (
     <RoomSessionContext.Provider
@@ -146,6 +154,10 @@ export function RoomSessionProvider({ children }: { children: ReactNode }) {
         setImageAdjust,
         aiDirection,
         setAiDirection,
+        analysisOpen,
+        setAnalysisOpen,
+        analysisMode,
+        setAnalysisMode,
       }}
     >
       {children}

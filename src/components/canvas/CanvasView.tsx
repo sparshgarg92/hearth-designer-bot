@@ -1,16 +1,17 @@
 import { Link } from "@tanstack/react-router";
-import { Share2, ArrowLeft, Sparkles } from "lucide-react";
+import { Share2, ArrowLeft, Microscope } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useRoomSession, VIEWPOINTS, INITIAL_ITEMS } from "@/lib/room-session";
+import { useRoomSession, VIEWPOINTS } from "@/lib/room-session";
 import { RoomStage } from "./RoomStage";
 import { ItemSidebar } from "./ItemSidebar";
+import { AnalysisSidebar } from "./AnalysisSidebar";
 import { ChatPanel } from "./ChatPanel";
 import { HistoryStrip } from "./HistoryStrip";
 import { ViewpointSwitcher } from "./ViewpointSwitcher";
 import { LinkPreviewPanel } from "./LinkPreviewPanel";
 
 export function CanvasView() {
-  const { versions, currentVersionId } = useRoomSession();
+  const { versions, currentVersionId, analysisOpen, setAnalysisOpen } = useRoomSession();
   const [shareOpen, setShareOpen] = useState(false);
 
   const currentVersion = useMemo(
@@ -38,8 +39,15 @@ export function CanvasView() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition">
-            <Sparkles className="h-3.5 w-3.5" /> {INITIAL_ITEMS.length} items detected
+          <button
+            onClick={() => setAnalysisOpen(!analysisOpen)}
+            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition ${
+              analysisOpen
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-card text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Microscope className="h-3.5 w-3.5" /> In-depth analysis
           </button>
           <button
             onClick={() => setShareOpen(true)}
@@ -52,7 +60,7 @@ export function CanvasView() {
 
       {/* 3-col layout */}
       <div className="flex min-h-0 flex-1">
-        <ItemSidebar />
+        {analysisOpen ? <AnalysisSidebar /> : <ItemSidebar />}
 
         <section className="flex min-w-0 flex-1 flex-col">
           <div className="relative flex-1 overflow-hidden p-4 sm:p-6">
