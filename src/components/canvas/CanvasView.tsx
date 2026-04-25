@@ -39,8 +39,15 @@ export function CanvasView() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition">
-            <Sparkles className="h-3.5 w-3.5" /> {INITIAL_ITEMS.length} items detected
+          <button
+            onClick={() => setAnalysisOpen(!analysisOpen)}
+            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition ${
+              analysisOpen
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-card text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Microscope className="h-3.5 w-3.5" /> In-depth analysis
           </button>
           <button
             onClick={() => setShareOpen(true)}
