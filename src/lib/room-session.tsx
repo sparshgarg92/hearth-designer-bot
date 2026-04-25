@@ -94,6 +94,10 @@ type RoomSessionState = {
   setImageAdjust: (a: ImageAdjust) => void;
   aiDirection: AiDirection;
   setAiDirection: (a: AiDirection) => void;
+  analysisOpen: boolean;
+  setAnalysisOpen: (b: boolean) => void;
+  analysisMode: AnalysisMode;
+  setAnalysisMode: (m: AnalysisMode) => void;
 };
 
 const RoomSessionContext = createContext<RoomSessionState | null>(null);
