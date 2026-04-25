@@ -154,6 +154,10 @@ export function RoomSessionProvider({ children }: { children: ReactNode }) {
         setImageAdjust,
         aiDirection,
         setAiDirection,
+        analysisOpen,
+        setAnalysisOpen,
+        analysisMode,
+        setAnalysisMode,
       }}
     >
       {children}
