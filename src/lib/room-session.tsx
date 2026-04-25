@@ -130,6 +130,8 @@ export function RoomSessionProvider({ children }: { children: ReactNode }) {
     floorColour: "",
     floorMaterial: "",
   });
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>(null);
 
   return (
     <RoomSessionContext.Provider
