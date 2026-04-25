@@ -11,7 +11,7 @@ import { ViewpointSwitcher } from "./ViewpointSwitcher";
 import { LinkPreviewPanel } from "./LinkPreviewPanel";
 
 export function CanvasView() {
-  const { versions, currentVersionId } = useRoomSession();
+  const { versions, currentVersionId, analysisOpen, setAnalysisOpen } = useRoomSession();
   const [shareOpen, setShareOpen] = useState(false);
 
   const currentVersion = useMemo(
