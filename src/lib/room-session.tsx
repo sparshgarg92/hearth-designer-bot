@@ -53,6 +53,26 @@ export const INITIAL_ITEMS: DetectedItem[] = [
   { id: "plant", label: "Potted plant", x: 38, y: 70 },
 ];
 
+export type LinkPreview = {
+  url: string;
+  kind: "product" | "airbnb";
+  title: string;
+  image: string;
+};
+
+export type ImageAdjust = {
+  brightness: number; // %
+  rotation: number; // deg
+  elevation: number; // arbitrary
+};
+
+export type AiDirection = {
+  wallColour: string;
+  wallMaterial: string;
+  floorColour: string;
+  floorMaterial: string;
+};
+
 type RoomSessionState = {
   items: DetectedItem[];
   setItems: (i: DetectedItem[]) => void;
@@ -66,6 +86,12 @@ type RoomSessionState = {
   setCurrentViewpointId: (id: string) => void;
   highlightedItemId: string | null;
   setHighlightedItemId: (id: string | null) => void;
+  linkPreview: LinkPreview | null;
+  setLinkPreview: (p: LinkPreview | null) => void;
+  imageAdjust: ImageAdjust;
+  setImageAdjust: (a: ImageAdjust) => void;
+  aiDirection: AiDirection;
+  setAiDirection: (a: AiDirection) => void;
 };
 
 const RoomSessionContext = createContext<RoomSessionState | null>(null);
@@ -86,6 +112,18 @@ export function RoomSessionProvider({ children }: { children: ReactNode }) {
   const [currentVersionId, setCurrentVersionId] = useState("v0");
   const [currentViewpointId, setCurrentViewpointId] = useState("main");
   const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
+  const [linkPreview, setLinkPreview] = useState<LinkPreview | null>(null);
+  const [imageAdjust, setImageAdjust] = useState<ImageAdjust>({
+    brightness: 100,
+    rotation: 0,
+    elevation: 0,
+  });
+  const [aiDirection, setAiDirection] = useState<AiDirection>({
+    wallColour: "",
+    wallMaterial: "",
+    floorColour: "",
+    floorMaterial: "",
+  });
 
   return (
     <RoomSessionContext.Provider
@@ -102,6 +140,12 @@ export function RoomSessionProvider({ children }: { children: ReactNode }) {
         setCurrentViewpointId,
         highlightedItemId,
         setHighlightedItemId,
+        linkPreview,
+        setLinkPreview,
+        imageAdjust,
+        setImageAdjust,
+        aiDirection,
+        setAiDirection,
       }}
     >
       {children}

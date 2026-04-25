@@ -8,6 +8,7 @@ export function RoomStage() {
     currentViewpointId,
     highlightedItemId,
     items,
+    imageAdjust,
   } = useRoomSession();
 
   const version = useMemo(
@@ -20,6 +21,13 @@ export function RoomStage() {
   const hl = INITIAL_ITEMS.find((i) => i.id === highlightedItemId);
   const itemRemoved = highlightedItemId && !items.find((i) => i.id === highlightedItemId);
 
+  const composedFilter = [
+    version.filter,
+    `brightness(${imageAdjust.brightness}%)`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <div className="relative h-full w-full overflow-hidden rounded-2xl bg-card shadow-[var(--shadow-elevated)]">
       <img
@@ -27,7 +35,11 @@ export function RoomStage() {
         src={viewpoint.image}
         alt="Your room"
         className="animate-fade-in h-full w-full object-cover transition-all duration-500"
-        style={{ filter: version.filter }}
+        style={{
+          filter: composedFilter,
+          transform: `rotate(${imageAdjust.rotation}deg) translateY(${-imageAdjust.elevation}px) scale(${1 + Math.abs(imageAdjust.rotation) * 0.01})`,
+          transformOrigin: "center",
+        }}
       />
 
       {/* Style tint overlay */}

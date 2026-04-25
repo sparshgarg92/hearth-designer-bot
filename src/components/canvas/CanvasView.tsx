@@ -7,6 +7,7 @@ import { ItemSidebar } from "./ItemSidebar";
 import { ChatPanel } from "./ChatPanel";
 import { HistoryStrip } from "./HistoryStrip";
 import { ViewpointSwitcher } from "./ViewpointSwitcher";
+import { LinkPreviewPanel } from "./LinkPreviewPanel";
 
 export function CanvasView() {
   const { versions, currentVersionId } = useRoomSession();
@@ -65,7 +66,15 @@ export function CanvasView() {
           </div>
         </section>
 
-        <ChatPanel />
+        {/* Right column: top half preview, bottom half chat */}
+        <aside className="hidden w-[360px] shrink-0 flex-col border-l border-border lg:flex">
+          <div className="h-1/2 min-h-0 border-b border-border">
+            <LinkPreviewPanel />
+          </div>
+          <div className="h-1/2 min-h-0">
+            <ChatPanel />
+          </div>
+        </aside>
       </div>
 
       {/* Share modal */}
