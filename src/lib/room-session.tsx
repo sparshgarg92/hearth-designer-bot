@@ -36,6 +36,16 @@ export type AiDirection = {
 
 export type AnalysisMode = "thermal" | "wifi" | "acoustic" | null;
 
+export type SimRoomScore = {
+  roomId: string; score: number; label: string; detail: string;
+};
+
+export type SimScores = {
+  thermal: SimRoomScore[];
+  wifi: SimRoomScore[];
+  acoustic: SimRoomScore[];
+};
+
 export const VIEWPOINTS: Viewpoint[] = [
   { id: "main", label: "Wide", image: roomMain },
   { id: "doorway", label: "From doorway", image: roomDoorway },
@@ -63,13 +73,15 @@ type RoomSessionState = {
   analysisOpen: boolean; setAnalysisOpen: (b: boolean) => void;
   analysisMode: AnalysisMode; setAnalysisMode: (m: AnalysisMode) => void;
   generatedImage: string | null; setGeneratedImage: (img: string | null) => void;
+  simScores: SimScores | null; setSimScores: (s: SimScores) => void;
 };
 
 const RoomSessionContext = createContext<RoomSessionState | null>(null);
 
 export function RoomSessionProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<DetectedItem[]>(INITIAL_ITEMS);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);  const [versions, setVersions] = useState<EditVersion[]>([{ id: "v0", label: "Original" }]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [versions, setVersions] = useState<EditVersion[]>([{ id: "v0", label: "Original" }]);
   const [currentVersionId, setCurrentVersionId] = useState("v0");
   const [currentViewpointId, setCurrentViewpointId] = useState("main");
   const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
@@ -79,6 +91,7 @@ export function RoomSessionProvider({ children }: { children: ReactNode }) {
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [simScores, setSimScores] = useState<SimScores | null>(null);
 
   return (
     <RoomSessionContext.Provider value={{
@@ -94,6 +107,7 @@ export function RoomSessionProvider({ children }: { children: ReactNode }) {
       analysisOpen, setAnalysisOpen,
       analysisMode, setAnalysisMode,
       generatedImage, setGeneratedImage,
+      simScores, setSimScores,
     }}>
       {children}
     </RoomSessionContext.Provider>
@@ -105,4 +119,3 @@ export function useRoomSession() {
   if (!ctx) throw new Error("useRoomSession must be used inside RoomSessionProvider");
   return ctx;
 }
-
