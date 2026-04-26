@@ -9,7 +9,7 @@ export const Route = createFileRoute("/capture")({
   component: Capture,
 });
 
-const API_URL = "https://roomly-backend-seven.vercel.app";
+const API_URL = "http://localhost:3000";
 
 function Capture() {
   const navigate = useNavigate();

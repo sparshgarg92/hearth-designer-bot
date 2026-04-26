@@ -1,48 +1,40 @@
-import { useEffect, useState } from "react";
 import { useRoomSession } from "@/lib/room-session";
+import { ROOM_LIST } from "./RoomStage";
 
-const TYPE_ICONS: Record<string, string> = {
-  living: "🛋️", bedroom: "🛏️", kitchen: "🍳",
-  bathroom: "🚿", dining: "🍽️", hallway: "🚪",
-  office: "💻", other: "📦",
-};
+interface Props {
+  selectedRoomId: string | null;
+  onSelect: (id: string | null) => void;
+}
 
-export function ViewpointSwitcher() {
-  const { currentViewpointId, setCurrentViewpointId } = useRoomSession();
-  const [rooms, setRooms] = useState<any[]>([]);
-
-  useEffect(() => {
-    const raw = sessionStorage.getItem("roomData");
-    if (raw) setRooms(JSON.parse(raw).rooms || []);
-  }, []);
-
-  const views = [
-    { id: "overview", name: "Overview", icon: "🏠" },
-    ...rooms.map((r) => ({ id: r.id, name: r.name, icon: TYPE_ICONS[r.type] || "📦" })),
-  ];
-
+export function ViewpointSwitcher({ selectedRoomId, onSelect }: Props) {
   return (
-    <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
-      <span className="shrink-0 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-        Rooms
-      </span>
-      <div className="flex gap-1.5 overflow-x-auto">
-        {views.map((vp) => {
-          const active = vp.id === currentViewpointId;
-          return (
-            <button key={vp.id} onClick={() => setCurrentViewpointId(vp.id)}
-              className={`flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-md border px-3 py-1.5 text-[10px] transition-all ${
-                active
-                  ? "border-foreground bg-foreground text-background scale-105 shadow-[var(--shadow-soft)]"
-                  : "border-border bg-card text-muted-foreground opacity-70 hover:opacity-100"
-              }`}>
-              <span className="text-base">{vp.icon}</span>
-              <span>{vp.name}</span>
-            </button>
-          );
-        })}
+    <div className="flex items-center gap-2 border-b border-border px-4 py-2.5 overflow-x-auto">
+      <span className="shrink-0 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Rooms</span>
+      <div className="flex gap-1.5">
+        <button
+          onClick={() => onSelect(null)}
+          className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all ${
+            selectedRoomId === null
+              ? "border-foreground bg-foreground text-background shadow"
+              : "border-border bg-card text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Overview
+        </button>
+        {ROOM_LIST.map((room) => (
+          <button
+            key={room.id}
+            onClick={() => onSelect(room.id)}
+            className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all ${
+              selectedRoomId === room.id
+                ? "border-foreground bg-foreground text-background shadow"
+                : "border-border bg-card text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {room.name}
+          </button>
+        ))}
       </div>
     </div>
   );
 }
-

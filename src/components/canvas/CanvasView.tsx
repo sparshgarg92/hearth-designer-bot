@@ -6,18 +6,33 @@ import { RoomStage } from "./RoomStage";
 import { ItemSidebar } from "./ItemSidebar";
 import { AnalysisSidebar } from "./AnalysisSidebar";
 import { ChatPanel } from "./ChatPanel";
-import { HistoryStrip } from "./HistoryStrip";
 import { ViewpointSwitcher } from "./ViewpointSwitcher";
 import { LinkPreviewPanel } from "./LinkPreviewPanel";
 
 export function CanvasView() {
   const { versions, currentVersionId, analysisOpen, setAnalysisOpen } = useRoomSession();
   const [shareOpen, setShareOpen] = useState(false);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [placedItems, setPlacedItems] = useState<{ title: string; price: string; image: string }[]>([]);
+
+  const { linkPreview } = useRoomSession();
 
   const currentVersion = useMemo(
     () => versions.find((v) => v.id === currentVersionId) ?? versions[0],
     [versions, currentVersionId],
   );
+
+  const handleAddToCanvas = () => {
+    if (!linkPreview) return;
+    setPlacedItems((prev) => [
+      ...prev,
+      {
+        title: linkPreview.title,
+        price: (linkPreview as any).price || "",
+        image: linkPreview.image || "",
+      },
+    ]);
+  };
 
   return (
     <main className="flex h-screen flex-col overflow-hidden">
@@ -56,24 +71,51 @@ export function CanvasView() {
 
       {/* 3-col layout */}
       <div className="flex min-h-0 flex-1">
-        {/* Left sidebar — slimmer */}
+        {/* Left sidebar */}
         {analysisOpen ? <AnalysisSidebar /> : <ItemSidebar />}
 
-        {/* Center canvas — takes all remaining space */}
+        {/* Center canvas */}
         <section className="flex min-w-0 flex-1 flex-col">
           <div className="relative flex-1 overflow-hidden p-3">
-            <RoomStage />
+            <RoomStage
+              selectedRoomId={selectedRoomId}
+              onRoomSelect={setSelectedRoomId}
+              onItemPlaced={handleAddToCanvas}
+            />
           </div>
           <div className="shrink-0 border-t border-border bg-card/60 backdrop-blur">
-            <ViewpointSwitcher />
-            <HistoryStrip />
+            <ViewpointSwitcher
+              selectedRoomId={selectedRoomId}
+              onSelect={setSelectedRoomId}
+            />
+            {/* Items Added strip */}
+            <div className="flex items-center gap-3 overflow-x-auto px-4 py-2.5 min-h-[56px]">
+              <span className="shrink-0 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                Items Added
+              </span>
+              {placedItems.length === 0 ? (
+                <span className="text-xs text-muted-foreground/50">No items yet — paste an Amazon link and click Add to canvas</span>
+              ) : (
+                placedItems.map((item, i) => (
+                  <div key={i} className="flex shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1.5">
+                    {item.image && (
+                      <img src={item.image} alt={item.title} className="h-8 w-8 rounded object-contain bg-white" />
+                    )}
+                    <div className="flex flex-col">
+                      <span className="max-w-[140px] truncate text-[11px] font-medium">{item.title}</span>
+                      {item.price && <span className="text-[10px] text-muted-foreground">{item.price}</span>}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </section>
 
-        {/* Right column — wider, preview takes 60% height, chat 40% */}
+        {/* Right column */}
         <aside className="hidden w-[420px] shrink-0 flex-col border-l border-border lg:flex">
           <div className="min-h-0 border-b border-border" style={{ height: "65%" }}>
-            <LinkPreviewPanel />
+            <LinkPreviewPanel onAddToCanvas={handleAddToCanvas} />
           </div>
           <div className="min-h-0" style={{ height: "40%" }}>
             <ChatPanel />
