@@ -4,44 +4,31 @@ import { useRef, useState } from "react";
 
 export const Route = createFileRoute("/capture")({
   head: () => ({
-    meta: [{ title: "Scan your room — Roomly" }],
+    meta: [{ title: "Scan your room — Matterport" }],
   }),
   component: Capture,
 });
-
-const API_URL = "http://localhost:3000";
 
 function Capture() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = (file: File) => {
     setLoading(true);
-    setError("");
-    try {
-      const formData = new FormData();
-      formData.append("floorplan", file);
-
-      const res = await fetch(`${API_URL}/api/parse-floorplan`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (data.rooms) {
-        sessionStorage.setItem("roomData", JSON.stringify(data));
-        navigate({ to: "/processing" });
-      } else {
-        setError("Could not parse floor plan. Try another image.");
-      }
-    } catch (err) {
-      setError("Something went wrong. Check your connection.");
-    } finally {
-      setLoading(false);
-    }
+    // No API call — just store a placeholder and navigate
+    sessionStorage.setItem("roomData", JSON.stringify({
+      rooms: [
+        { id: "living",  name: "Living Room",  wallColor: "#E8DDD0" },
+        { id: "kitchen", name: "Kitchen",       wallColor: "#E5E0D5" },
+        { id: "bedroom", name: "Bed Room",      wallColor: "#D8E0E8" },
+        { id: "toilet",  name: "Toilet",        wallColor: "#E0EEEE" },
+        { id: "shop1",   name: "Shop 1",        wallColor: "#E5DDD5" },
+        { id: "shop2",   name: "Shop 2",        wallColor: "#E5DDD5" },
+        { id: "sitout",  name: "Sitout",        wallColor: "#EDE8E0" },
+      ]
+    }));
+    navigate({ to: "/processing" });
   };
 
   return (
@@ -96,10 +83,6 @@ function Capture() {
             )}
           </button>
         </div>
-
-        {error && (
-          <p className="mt-4 text-sm text-red-500">{error}</p>
-        )}
       </section>
     </main>
   );

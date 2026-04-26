@@ -3,48 +3,16 @@ import roomMain from "@/assets/room-main.jpg";
 import roomDoorway from "@/assets/room-doorway.jpg";
 import roomCorner from "@/assets/room-corner.jpg";
 
-export type DetectedItem = {
-  id: string; label: string; x: number; y: number;
-};
-
-export type ChatMessage = {
-  id: string; role: "assistant" | "user"; content: string;
-  productCard?: { title: string; price: string; image: string; };
-};
-
+export type DetectedItem = { id: string; label: string; x: number; y: number; };
+export type ChatMessage = { id: string; role: "assistant" | "user"; content: string; productCard?: { title: string; price: string; image: string; }; };
 export type Viewpoint = { id: string; label: string; image: string; };
-
-export type EditVersion = {
-  id: string; label: string; filter?: string;
-  removed?: string[]; added?: { label: string; description: string }[];
-  styleTint?: string; styleLabel?: string;
-};
-
-export type LinkPreview = {
-  url: string; kind: "product" | "airbnb";
-  title: string; image: string;
-  price?: string; color?: string; type?: string;
-  width?: number; depth?: number; height?: number;
-};
-
+export type EditVersion = { id: string; label: string; filter?: string; removed?: string[]; added?: { label: string; description: string }[]; styleTint?: string; styleLabel?: string; };
+export type LinkPreview = { url: string; kind: "product" | "airbnb"; title: string; image: string; price?: string; color?: string; type?: string; width?: number; depth?: number; height?: number; };
 export type ImageAdjust = { brightness: number; rotation: number; elevation: number; };
-
-export type AiDirection = {
-  wallColour: string; wallMaterial: string;
-  floorColour: string; floorMaterial: string;
-};
-
-export type AnalysisMode = "thermal" | "wifi" | "acoustic" | null;
-
-export type SimRoomScore = {
-  roomId: string; score: number; label: string; detail: string;
-};
-
-export type SimScores = {
-  thermal: SimRoomScore[];
-  wifi: SimRoomScore[];
-  acoustic: SimRoomScore[];
-};
+export type AiDirection = { wallColour: string; wallMaterial: string; floorColour: string; floorMaterial: string; };
+export type AnalysisMode = "none" | "thermal" | "wifi" | "acoustic";
+export type SimRoomScore = { roomId: string; score: number; label: string; detail: string; };
+export type SimScores = { thermal: SimRoomScore[]; wifi: SimRoomScore[]; acoustic: SimRoomScore[]; };
 
 export const VIEWPOINTS: Viewpoint[] = [
   { id: "main", label: "Wide", image: roomMain },
@@ -89,7 +57,7 @@ export function RoomSessionProvider({ children }: { children: ReactNode }) {
   const [imageAdjust, setImageAdjust] = useState<ImageAdjust>({ brightness: 100, rotation: 0, elevation: 0 });
   const [aiDirection, setAiDirection] = useState<AiDirection>({ wallColour: "", wallMaterial: "", floorColour: "", floorMaterial: "" });
   const [analysisOpen, setAnalysisOpen] = useState(false);
-  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>(null);
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>("none");
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [simScores, setSimScores] = useState<SimScores | null>(null);
 

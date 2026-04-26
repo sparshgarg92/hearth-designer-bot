@@ -11,7 +11,6 @@ const ROOMS = [
   { id: "sitout",  name: "Sitout"      },
 ];
 
-// SVG floor plan proportions (scaled to 300x220 viewBox)
 const ROOM_RECTS = [
   { id: "living",  x: 91,  y: 88,  w: 134, h: 107 },
   { id: "kitchen", x: 91,  y: 0,   w: 134, h: 86  },
@@ -22,15 +21,17 @@ const ROOM_RECTS = [
   { id: "sitout",  x: 0,   y: 86,  w: 90,  h: 172 },
 ];
 
+type ActiveMode = Exclude<AnalysisMode, "none">;
+
 type ModeConfig = {
-  id: Exclude<AnalysisMode, null>;
+  id: ActiveMode;
   label: string;
   icon: React.ReactNode;
   blurb: string;
-  lowColor: string;
-  highColor: string;
+  gradient: [string, string];
   lowLabel: string;
   highLabel: string;
+  gradientId: string;
 };
 
 const MODES: ModeConfig[] = [
@@ -39,7 +40,8 @@ const MODES: ModeConfig[] = [
     label: "Thermal / HVAC",
     icon: <Thermometer className="h-4 w-4" />,
     blurb: "Heat flow, sun exposure and HVAC efficiency.",
-    lowColor: "#93C5FD", highColor: "#EF4444",
+    gradient: ["#60a5fa", "#ef4444"],
+    gradientId: "thermalGrad",
     lowLabel: "Cool", highLabel: "Hot",
   },
   {
@@ -47,7 +49,8 @@ const MODES: ModeConfig[] = [
     label: "WiFi Signal",
     icon: <Wifi className="h-4 w-4" />,
     blurb: "Signal strength based on walls and router position.",
-    lowColor: "#EF4444", highColor: "#22C55E",
+    gradient: ["#ef4444", "#22c55e"],
+    gradientId: "wifiGrad",
     lowLabel: "Weak", highLabel: "Strong",
   },
   {
@@ -55,12 +58,13 @@ const MODES: ModeConfig[] = [
     label: "Acoustics",
     icon: <AudioLines className="h-4 w-4" />,
     blurb: "Reverb and echo based on room surfaces.",
-    lowColor: "#22C55E", highColor: "#EF4444",
+    gradient: ["#22c55e", "#ef4444"],
+    gradientId: "acousticGrad",
     lowLabel: "Absorbed", highLabel: "Echo",
   },
 ];
 
-function scoreToColor(score: number, low: string, high: string): string {
+function scoreToRgb(score: number, low: string, high: string): string {
   const t = score / 100;
   const lc = parseInt(low.slice(1), 16);
   const hc = parseInt(high.slice(1), 16);
@@ -68,7 +72,7 @@ function scoreToColor(score: number, low: string, high: string): string {
   const r = lerp((lc >> 16) & 0xff, (hc >> 16) & 0xff);
   const g = lerp((lc >> 8) & 0xff, (hc >> 8) & 0xff);
   const b = lerp(lc & 0xff, hc & 0xff);
-  return `rgba(${r},${g},${b},0.75)`;
+  return `${r},${g},${b}`;
 }
 
 export function AnalysisSidebar() {
@@ -82,10 +86,9 @@ export function AnalysisSidebar() {
   return (
     <aside className="hidden w-72 shrink-0 flex-col border-r border-border bg-card/40 lg:flex overflow-y-auto">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-          In-depth analysis
-        </div>
-        <button onClick={() => { setAnalysisOpen(false); setAnalysisMode(null); }}
+        <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">In-depth analysis</div>
+        <button
+          onClick={() => { setAnalysisOpen(false); setAnalysisMode("none"); }}
           className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground">
           <X className="h-3.5 w-3.5" />
         </button>
@@ -96,16 +99,18 @@ export function AnalysisSidebar() {
           const active = analysisMode === m.id;
           const hasData = simScores && simScores[m.id]?.length > 0;
           return (
-            <button key={m.id} onClick={() => setAnalysisMode(active ? null : m.id)}
-              className={`flex flex-col items-start gap-1 rounded-lg border px-3 py-2.5 text-left transition ${
+            <button key={m.id} onClick={() => setAnalysisMode(active ? "none" : m.id)}
+              className={`flex flex-col items-start gap-1 rounded-xl border px-3 py-2.5 text-left transition-all ${
                 active
-                  ? "border-foreground/40 bg-foreground text-background shadow-[var(--shadow-soft)]"
-                  : "border-border bg-background hover:border-foreground/20"
+                  ? "border-foreground/40 bg-foreground text-background shadow-lg scale-[1.01]"
+                  : "border-border bg-background hover:border-foreground/20 hover:shadow-sm"
               }`}>
               <span className="flex items-center gap-2 text-sm font-medium w-full">
                 {m.icon} {m.label}
                 {hasData && !active && (
-                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-green-500" />
+                  <span className="ml-auto flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  </span>
                 )}
               </span>
               <span className={`text-[11px] leading-snug ${active ? "text-background/70" : "text-muted-foreground"}`}>
@@ -116,7 +121,7 @@ export function AnalysisSidebar() {
         })}
 
         {!simScores && (
-          <div className="mt-2 flex items-start gap-2 rounded-lg border border-dashed border-border p-3">
+          <div className="mt-2 flex items-start gap-2 rounded-xl border border-dashed border-border p-3">
             <Brain className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground/50" />
             <p className="text-[11px] text-muted-foreground leading-snug">
               Describe your walls or materials in the chat — K2 will compute the simulations automatically.
@@ -125,30 +130,52 @@ export function AnalysisSidebar() {
         )}
       </div>
 
-      {/* Heatmap — only shows when mode is selected AND K2 has returned scores */}
       {activeConfig && activeScores.length > 0 && (
         <div className="px-4 pb-4 flex flex-col gap-3">
-          <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            Floor plan overlay
-          </div>
+          <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Floor plan overlay</div>
 
-          <div className="rounded-xl border border-border bg-background p-2 overflow-hidden">
-            <svg viewBox="0 0 356 294" className="w-full">
+          <div className="rounded-xl border border-border bg-background overflow-hidden shadow-inner">
+            <svg viewBox="-4 -4 364 302" className="w-full">
+              <defs>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                  <feMerge>
+                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                {ROOM_RECTS.map((rect) => {
+                  const result = activeScores.find((r) => r.roomId === rect.id);
+                  const score = result?.score ?? 50;
+                  const rgb = scoreToRgb(score, activeConfig.gradient[0], activeConfig.gradient[1]);
+                  return (
+                    <radialGradient key={rect.id} id={`rg-${rect.id}`} cx="50%" cy="40%" r="60%">
+                      <stop offset="0%" stopColor={`rgb(${rgb})`} stopOpacity="1" />
+                      <stop offset="100%" stopColor={`rgb(${rgb})`} stopOpacity="0.7" />
+                    </radialGradient>
+                  );
+                })}
+              </defs>
+
               {ROOM_RECTS.map((rect) => {
                 const result = activeScores.find((r) => r.roomId === rect.id);
                 const score = result?.score ?? 50;
-                const color = scoreToColor(score, activeConfig.lowColor, activeConfig.highColor);
+                const rgb = scoreToRgb(score, activeConfig.gradient[0], activeConfig.gradient[1]);
                 const room = ROOMS.find((r) => r.id === rect.id);
                 return (
                   <g key={rect.id}>
                     <rect x={rect.x} y={rect.y} width={rect.w} height={rect.h}
-                      fill={color} stroke="white" strokeWidth="1.5" rx="3" />
-                    <text x={rect.x + rect.w / 2} y={rect.y + rect.h / 2 - 7}
-                      textAnchor="middle" fontSize="7.5" fill="white" fontWeight="600">
+                      fill={`rgb(${rgb})`} opacity="0.3" rx="6" filter="url(#glow)" />
+                    <rect x={rect.x + 1} y={rect.y + 1} width={rect.w - 2} height={rect.h - 2}
+                      fill={`url(#rg-${rect.id})`} rx="5" />
+                    <rect x={rect.x} y={rect.y} width={rect.w} height={rect.h}
+                      fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" rx="6" />
+                    <text x={rect.x + rect.w / 2} y={rect.y + rect.h / 2 - 8}
+                      textAnchor="middle" fontSize="7" fill="white" fontWeight="700">
                       {room?.name}
                     </text>
                     <text x={rect.x + rect.w / 2} y={rect.y + rect.h / 2 + 7}
-                      textAnchor="middle" fontSize="8.5" fill="white" opacity="0.9">
+                      textAnchor="middle" fontSize="9" fill="white" fontWeight="600" opacity="0.95">
                       {result?.label ?? "…"}
                     </text>
                   </g>
@@ -157,29 +184,30 @@ export function AnalysisSidebar() {
             </svg>
           </div>
 
-          {/* Gradient legend */}
           <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-            <span>{activeConfig.lowLabel}</span>
-            <div className="h-2 flex-1 rounded-full" style={{
-              background: `linear-gradient(to right, ${activeConfig.lowColor}, ${activeConfig.highColor})`
+            <span className="font-medium">{activeConfig.lowLabel}</span>
+            <div className="h-2 flex-1 rounded-full shadow-inner" style={{
+              background: `linear-gradient(to right, ${activeConfig.gradient[0]}, ${activeConfig.gradient[1]})`
             }} />
-            <span>{activeConfig.highLabel}</span>
+            <span className="font-medium">{activeConfig.highLabel}</span>
           </div>
 
-          {/* Per-room breakdown */}
           <div className="flex flex-col gap-1.5">
             {activeScores.map((r) => {
               const room = ROOMS.find((rm) => rm.id === r.roomId);
-              const color = scoreToColor(r.score, activeConfig.lowColor, activeConfig.highColor);
+              const rgb = scoreToRgb(r.score, activeConfig.gradient[0], activeConfig.gradient[1]);
+              const color = `rgb(${rgb})`;
               return (
-                <div key={r.roomId} className="flex items-start gap-2 rounded-lg border border-border bg-background px-2.5 py-2">
-                  <div className="mt-0.5 h-3 w-3 shrink-0 rounded-sm" style={{ background: color }} />
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[11px] font-medium">
-                      {room?.name} <span className="text-muted-foreground font-normal">· {r.label}</span>
-                    </span>
-                    <span className="text-[10px] text-muted-foreground leading-snug">{r.detail}</span>
+                <div key={r.roomId} className="rounded-xl border border-border bg-background px-3 py-2.5 shadow-sm">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[11px] font-semibold">{room?.name}</span>
+                    <span className="text-[11px] font-mono font-medium" style={{ color }}>{r.label}</span>
                   </div>
+                  <div className="h-1.5 w-full rounded-full bg-border overflow-hidden mb-1.5">
+                    <div className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${r.score}%`, background: color }} />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground leading-snug">{r.detail}</p>
                 </div>
               );
             })}
@@ -187,9 +215,8 @@ export function AnalysisSidebar() {
         </div>
       )}
 
-      {/* Mode selected but no scores yet */}
-      {analysisMode && activeScores.length === 0 && (
-        <div className="mx-4 mb-4 rounded-lg border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+      {analysisMode !== "none" && activeScores.length === 0 && (
+        <div className="mx-4 mb-4 rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
           Talk to your room about wall materials or layout — K2 will populate this automatically.
         </div>
       )}

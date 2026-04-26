@@ -10,7 +10,7 @@ import { ViewpointSwitcher } from "./ViewpointSwitcher";
 import { LinkPreviewPanel } from "./LinkPreviewPanel";
 
 export function CanvasView() {
-  const { versions, currentVersionId, analysisOpen, setAnalysisOpen } = useRoomSession();
+  const { versions, currentVersionId, analysisOpen, setAnalysisOpen, analysisMode } = useRoomSession();
   const [shareOpen, setShareOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [placedItems, setPlacedItems] = useState<{ title: string; price: string; image: string }[]>([]);
@@ -78,10 +78,11 @@ export function CanvasView() {
         <section className="flex min-w-0 flex-1 flex-col">
           <div className="relative flex-1 overflow-hidden p-3">
             <RoomStage
-              selectedRoomId={selectedRoomId}
-              onRoomSelect={setSelectedRoomId}
-              onItemPlaced={handleAddToCanvas}
-            />
+            selectedRoomId={selectedRoomId}
+            onRoomSelect={setSelectedRoomId}
+            onItemPlaced={handleAddToCanvas}
+            analysisMode={analysisMode ?? "none"}
+/>
           </div>
           <div className="shrink-0 border-t border-border bg-card/60 backdrop-blur">
             <ViewpointSwitcher

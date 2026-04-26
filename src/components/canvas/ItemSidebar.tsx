@@ -9,6 +9,7 @@ function guessFurnitureType(title: string): string {
   if (t.includes("sofa") || t.includes("couch") || t.includes("sectional")) return "sofa";
   if (t.includes("chair") || t.includes("recliner") || t.includes("armchair")) return "chair";
   if (t.includes("table") || t.includes("coffee table") || t.includes("dining table")) return "table";
+  if (t.includes("desk")) return "desk";
   if (t.includes("bed") || t.includes("mattress") || t.includes("headboard")) return "bed";
   if (t.includes("lamp") || t.includes("light") || t.includes("chandelier")) return "lamp";
   if (t.includes("tv") || t.includes("television") || t.includes("monitor")) return "tv";
@@ -33,6 +34,37 @@ function guessColor(title: string): string {
   if (t.includes("purple") || t.includes("lavender")) return "#6B4C8B";
   if (t.includes("yellow") || t.includes("gold") || t.includes("mustard")) return "#B8860B";
   return "#8B6914";
+}
+
+// Fallback dimensions in inches by furniture type
+const FALLBACK_DIMS: Record<string, { w: number; h: number; d: number }> = {
+  sofa:  { w: 84, h: 34, d: 36 },
+  chair: { w: 30, h: 34, d: 28 },
+  table: { w: 48, h: 30, d: 28 },
+  desk:  { w: 55, h: 30, d: 28 },
+  bed:   { w: 63, h: 22, d: 80 },
+  lamp:  { w: 14, h: 63, d: 14 },
+  tv:    { w: 55, h: 32, d: 4  },
+  rug:   { w: 96, h: 1,  d: 60 },
+  plant: { w: 16, h: 32, d: 16 },
+  shelf: { w: 36, h: 72, d: 14 },
+  other: { w: 24, h: 24, d: 24 },
+};
+
+function parseDimensions(text: string): { w?: number; h?: number; d?: number } {
+  // Matches: 72"W x 34"D x 28"H  OR  72W x 34D x 28H  OR  72 x 34 x 28 inches
+  const m3 = text.match(/(\d+\.?\d*)["\s]*W["\s]*\s*[xX×]\s*(\d+\.?\d*)["\s]*D["\s]*\s*[xX×]\s*(\d+\.?\d*)["\s]*H/i);
+  if (m3) return { w: parseFloat(m3[1]), d: parseFloat(m3[2]), h: parseFloat(m3[3]) };
+
+  // Matches: L x W x H with inches
+  const m3b = text.match(/(\d+\.?\d*)\s*[xX×]\s*(\d+\.?\d*)\s*[xX×]\s*(\d+\.?\d*)\s*(?:inches|in|")/i);
+  if (m3b) return { w: parseFloat(m3b[1]), d: parseFloat(m3b[2]), h: parseFloat(m3b[3]) };
+
+  // Matches: W x D only
+  const m2 = text.match(/(\d+\.?\d*)\s*[xX×]\s*(\d+\.?\d*)\s*(?:inches|in|")/i);
+  if (m2) return { w: parseFloat(m2[1]), d: parseFloat(m2[2]) };
+
+  return {};
 }
 
 export function ItemSidebar() {
@@ -61,10 +93,35 @@ export function ItemSidebar() {
         try {
           const pathParts = new URL(trimmed).pathname.split("/").filter(Boolean);
           const dpIndex = pathParts.indexOf("dp");
-          productName = dpIndex > 0 ? pathParts[dpIndex - 1].replace(/-/g, " ") : pathParts[0]?.replace(/-/g, " ") || "Product";
+          productName = dpIndex > 0
+            ? pathParts[dpIndex - 1].replace(/-/g, " ")
+            : pathParts[0]?.replace(/-/g, " ") || "Product";
         } catch { productName = "Product"; }
       }
-      productName = productName.replace(/\s*[-|]\s*(Amazon\.com|Amazon|Walmart\.com|Target).*$/i, "").trim();
+      productName = productName
+        .replace(/\s*[-|]\s*(Amazon\.com|Amazon|Walmart\.com|Target).*$/i, "")
+        .trim();
+
+      const type = guessFurnitureType(productName);
+      const fb = FALLBACK_DIMS[type] || FALLBACK_DIMS.other;
+
+      // Try to get dimensions: backend first, then parse from title+description
+      let width  = imgData.width  ? parseFloat(imgData.width)  : undefined;
+      let height = imgData.height ? parseFloat(imgData.height) : undefined;
+      let depth  = imgData.depth  ? parseFloat(imgData.depth)  : undefined;
+
+      if (!width || !height) {
+        const searchText = `${productName} ${imgData.description || ""} ${imgData.dimensions || ""}`;
+        const parsed = parseDimensions(searchText);
+        if (parsed.w) width  = parsed.w;
+        if (parsed.h) height = parsed.h;
+        if (parsed.d) depth  = parsed.d;
+      }
+
+      // Fall back to type-based defaults if still nothing
+      width  = width  ?? fb.w;
+      height = height ?? fb.h;
+      depth  = depth  ?? fb.d;
 
       setLinkPreview({
         url: trimmed,
@@ -72,9 +129,12 @@ export function ItemSidebar() {
         title: productName,
         price: imgData.price || "",
         image: imgData.image || "",
-        type: guessFurnitureType(productName),
+        type,
         color: guessColor(productName),
-      } as any);
+        width,
+        height,
+        depth,
+      });
       setUrl("");
     } catch {
       setError("Couldn't fetch that. Check the URL and try again.");
@@ -90,11 +150,18 @@ export function ItemSidebar() {
         <form onSubmit={submitLink} className="mt-2 flex flex-col gap-2">
           <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-2">
             <LinkIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Amazon link…"
-              className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground" />
+            <input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="Amazon link…"
+              className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+            />
           </div>
-          <button type="submit" disabled={loading || !url.trim()}
-            className="flex items-center justify-center gap-2 rounded-lg bg-foreground px-3 py-1.5 text-xs text-background shadow-[var(--shadow-soft)] hover:scale-[1.01] transition disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={loading || !url.trim()}
+            className="flex items-center justify-center gap-2 rounded-lg bg-foreground px-3 py-1.5 text-xs text-background shadow-[var(--shadow-soft)] hover:scale-[1.01] transition disabled:opacity-50"
+          >
             {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {loading ? "Fetching…" : "Add to room"}
           </button>
@@ -124,19 +191,26 @@ export function ItemSidebar() {
   );
 }
 
-function SliderRow({ icon, label, value, min, max, unit, onChange }: { icon: React.ReactNode; label: string; value: number; min: number; max: number; unit: string; onChange: (v: number) => void; }) {
+function SliderRow({ icon, label, value, min, max, unit, onChange }: {
+  icon: React.ReactNode; label: string; value: number;
+  min: number; max: number; unit: string; onChange: (v: number) => void;
+}) {
   return (
     <div>
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">{icon}{label}</span>
         <span className="tabular-nums text-foreground/70">{value}{unit}</span>
       </div>
-      <input type="range" min={min} max={max} value={value} onChange={(e) => onChange(Number(e.target.value))} className="mt-1.5 w-full accent-foreground" />
+      <input type="range" min={min} max={max} value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="mt-1.5 w-full accent-foreground" />
     </div>
   );
 }
 
-function FieldRow({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; }) {
+function FieldRow({ label, value, onChange, placeholder }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string;
+}) {
   return (
     <label className="flex flex-col gap-1">
       <span className="text-[11px] text-muted-foreground">{label}:</span>

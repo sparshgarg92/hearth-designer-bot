@@ -4,13 +4,13 @@ import { ArrowRight } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Roomly — Redesign any room. From your phone." },
+      { title: "Matterport — Redesign any room. From your phone." },
       {
         name: "description",
         content:
           "Scan your room with your phone. Then have a conversation with it — remove things, add furniture, restyle the whole space, and shop what you see.",
       },
-      { property: "og:title", content: "Roomly — Redesign any room. From your phone." },
+      { property: "og:title", content: "Matterport — Redesign any room. From your phone." },
       {
         property: "og:description",
         content:
@@ -30,7 +30,7 @@ function Landing() {
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-foreground" />
-          <span className="font-serif text-lg tracking-tight">Roomly</span>
+          <span className="font-serif text-lg tracking-tight">Matterport</span>
         </div>
         <nav className="hidden gap-8 text-sm text-muted-foreground sm:flex">
           <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
@@ -69,7 +69,6 @@ function Landing() {
         </div>
       </section>
 
-      {/* Subtle footer */}
       <footer className="absolute bottom-6 left-0 right-0 text-center text-xs text-muted-foreground">
         Built for anyone who's ever wished they could see it before they bought it.
       </footer>
