@@ -11,3 +11,5 @@ Amazon Furniture Placement — paste any Amazon product link and place it in you
 AI Spatial Analysis — powered by K2V2, get per-room scoring on thermal comfort, WiFi signal strength, and acoustic performance
 Live Overlays — AI analysis renders directly onto your 3D model as colour-coded visual overlays, not text reports.
 
+
+- Sparsh Garg, Saksham Raheja
